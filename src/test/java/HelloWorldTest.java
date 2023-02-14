@@ -7,7 +7,11 @@ public class HelloWorldTest {
     public void testRestAssured() {
 
         Response response = RestAssured
-                .get("https://playground.learnqa.ru/api/get_500")
+                .given()
+                .redirects()
+                .follow(false)
+                .when()
+                .get("https://playground.learnqa.ru/api/get_303")
                 .andReturn();
         int statusCode = response.getStatusCode();
         System.out.println(statusCode);
