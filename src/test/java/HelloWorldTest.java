@@ -1,5 +1,5 @@
 import io.restassured.RestAssured;
-import io.restassured.http.Headers;
+import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
 
@@ -44,6 +44,17 @@ public class HelloWorldTest {
                 .get("https://playground.learnqa.ru/api/get_text")
                 .andReturn();
         response.prettyPrint();
+    }
+
+    @Test
+    public void testGetJsonHomework() {
+
+        JsonPath response = RestAssured
+                .get("https://playground.learnqa.ru/api/get_json_homework")
+                .jsonPath();
+
+        String message = response.get("messages.message[1]");
+        System.out.println(message);
     }
 
 }
