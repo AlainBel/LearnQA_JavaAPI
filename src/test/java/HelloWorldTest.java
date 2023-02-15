@@ -23,7 +23,9 @@ public class HelloWorldTest {
         String responseCookie = responseForGet.getCookie("auth_cookie");
 
         Map<String,String> cookies = new HashMap<>();
-        cookies.put("auth_cookie", responseCookie);
+        if(responseCookie != null){
+            cookies.put("auth_cookie", responseCookie);
+        }
 
         Response responseForCheck = RestAssured
                 .given()
