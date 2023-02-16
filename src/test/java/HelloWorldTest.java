@@ -10,20 +10,20 @@ public class HelloWorldTest {
     @Test
     public void testRestAssured() {
         Map<String, String> data = new HashMap<>();
-        data.put ("login","secret_login");
-        data.put("password","secret_pass");
+        data.put("login", "secret_login");
+        data.put("password", "secret_pass");
 
-        Response responseForGet= RestAssured
+        Response responseForGet = RestAssured
                 .given()
-                .body (data)
+                .body(data)
                 .when()
                 .post("https://playground.learnqa.ru/api/get_auth_cookie")
                 .andReturn();
 
         String responseCookie = responseForGet.getCookie("auth_cookie");
 
-        Map<String,String> cookies = new HashMap<>();
-        if(responseCookie != null){
+        Map<String, String> cookies = new HashMap<>();
+        if (responseCookie != null) {
             cookies.put("auth_cookie", responseCookie);
         }
 
@@ -38,6 +38,7 @@ public class HelloWorldTest {
         responseForCheck.print();
 
     }
+
     @Test
     public void testGetText() {
         Response response = RestAssured
@@ -74,4 +75,30 @@ public class HelloWorldTest {
         System.out.println(locationHeader);
 
     }
+
+
+    @Test
+    public void testRedirectCycle() {
+        int currentStatusCode = 0;
+        String currentUrl = "https://playground.learnqa.ru/api/long_redirect";
+        int cyclesCounter = 0;
+
+        while (currentStatusCode != 200 || currentUrl != null) {
+            Response response = RestAssured
+                    .given()
+                    .redirects()
+                    .follow(false)
+                    .when()
+                    .get(currentUrl)
+                    .andReturn();
+
+            currentUrl = response.getHeader("Location");
+            currentStatusCode = response.getStatusCode();
+            cyclesCounter++;
+        }
+
+        System.out.println("StatusCode: " + currentStatusCode);
+        System.out.println("Cycles: " + cyclesCounter);
+    }
+
 }
