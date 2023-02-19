@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class HelloWorldTest {
     @Test
@@ -101,4 +102,46 @@ public class HelloWorldTest {
         System.out.println("Cycles: " + cyclesCounter);
     }
 
+    private static final String TASK_STATUS_NOT_READY = "Job is NOT ready";
+    private static final String TASK_STATUS_READY = "Job is ready";
+
+    @Test
+    public void testCompleteTask() throws InterruptedException {
+        JsonPath createTaskResponse = RestAssured
+                .get("https://playground.learnqa.ru/ajax/api/longtime_job")
+                .jsonPath();
+
+        String token = createTaskResponse.get("token");
+        int seconds = createTaskResponse.get("seconds");
+
+
+        JsonPath taskStatusResponse = getTaskStatusResponse(token);
+
+        String status = taskStatusResponse.get("status");
+        if (status.equals(TASK_STATUS_NOT_READY)) {
+            Thread.sleep(TimeUnit.SECONDS.toMillis(seconds));
+            JsonPath secondTaskStatusResponse = getTaskStatusResponse(token);
+            status = secondTaskStatusResponse.get("status");
+            String result = secondTaskStatusResponse.get("result");
+            if (!status.equals(TASK_STATUS_READY) || result == null) {
+                throw new IllegalStateException("Incorrect status after sleep");
+            }
+            System.out.println("Status:" + status);
+            System.out.println("Result:" + result);
+        } else {
+            throw new IllegalStateException("Incorrect task status");
+        }
+
+
+    }
+
+    private JsonPath getTaskStatusResponse(String token) {
+        return RestAssured
+                .given()
+                .queryParam("token", token)
+                .when()
+                .get("https://playground.learnqa.ru/ajax/api/longtime_job")
+                .jsonPath();
+
+    }
 }
