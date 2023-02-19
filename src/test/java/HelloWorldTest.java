@@ -1,11 +1,16 @@
 import io.restassured.RestAssured;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class HelloWorldTest {
     @Test
@@ -144,4 +149,71 @@ public class HelloWorldTest {
                 .jsonPath();
 
     }
+
+    private static final String AUTHORIZED = "You are authorized";
+    private static final String LOGIN_VALUE = "super_admin";
+    private static final String PASSWORD_TABLE_CAPTION = "Top 25 most common passwords by year according to SplashData";
+
+    @Test
+    public void testLogin() throws IOException {
+        Set<String> passwords = getPasswords();
+        boolean isPasswordFound = false;
+
+        for (String password : passwords) {
+            Response responseForLogin = responseForLogin(LOGIN_VALUE, password);
+            String responseCookie = responseForLogin.getCookie("auth_cookie");
+
+            Response responseForCheckCookie = responseForCheckCookie(responseCookie);
+            String result = responseForCheckCookie.getBody().asString();
+
+            if (result.equals(AUTHORIZED)) {
+                isPasswordFound = true;
+                System.out.println(AUTHORIZED);
+                System.out.println("password: " + password);
+                break;
+            }
+        }
+
+        if (!isPasswordFound) {
+            throw new IllegalStateException("Password was not found");
+        }
+    }
+
+    private Set<String> getPasswords() throws IOException {
+        Document doc = Jsoup.connect("https://en.wikipedia.org/wiki/List_of_the_most_common_passwords").get();
+        Optional<Element> passTable = doc.select(".wikitable").stream().filter(table -> {
+            Element caption = table.select("caption").first();
+            return caption != null && caption.text().equals(PASSWORD_TABLE_CAPTION);
+        }).findFirst();
+        if (passTable.isPresent()) {
+            Elements tds = passTable.get().getElementsByTag("td");
+            return tds.stream().map(Element::text).filter(val -> val.length() > 2).collect(Collectors.toSet());
+        } else {
+            return new HashSet<>();
+        }
+    }
+
+    private Response responseForLogin(String login, String password) {
+        Map<String, String> data = new HashMap<>();
+        data.put("login", login);
+        data.put("password", password); //тут нужен список для перебора
+
+        return RestAssured
+                .given()
+                .body(data)
+                .when()
+                .post("https://playground.learnqa.ru/ajax/api/get_secret_password_homework")
+                .andReturn();
+    }
+
+    private Response responseForCheckCookie(String responseCookie) {
+        return RestAssured
+                .given()
+                .cookies("auth_cookie", responseCookie)
+                .when()
+                .post("https://playground.learnqa.ru/ajax/api/check_auth_cookie")
+                .andReturn();
+    }
+
+
 }
