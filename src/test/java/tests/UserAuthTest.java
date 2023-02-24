@@ -34,8 +34,8 @@ public class UserAuthTest extends BaseTestCase {
                 .post("https://playground.learnqa.ru/api/user/login")
                 .andReturn();
 
-        this.cookie = responseGetAuth.getCookie("auth_sid");
-        this.header = responseGetAuth.getHeader("x-csrf-token");
+        this.cookie = this.getCookie(responseGetAuth, "auth_sid");
+        this.header = this.getHeader(responseGetAuth, "x-csrf-token");
         this.userIdOnAuth = responseGetAuth.jsonPath().getInt("user_id");
 
     }
