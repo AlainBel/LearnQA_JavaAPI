@@ -36,7 +36,7 @@ public class UserAuthTest extends BaseTestCase {
 
         this.cookie = this.getCookie(responseGetAuth, "auth_sid");
         this.header = this.getHeader(responseGetAuth, "x-csrf-token");
-        this.userIdOnAuth = responseGetAuth.jsonPath().getInt("user_id");
+        this.userIdOnAuth = this.getIntFromJson(responseGetAuth, "user_id");
 
     }
 
