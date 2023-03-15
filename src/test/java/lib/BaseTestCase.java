@@ -12,7 +12,7 @@ public class BaseTestCase {
     protected String getHeader(Response response, String name) {
         Headers headers = response.getHeaders();
 
-        assertTrue(headers.hasHeaderWithName(name), "Response doesn't have header with name" + name);
+        assertTrue(headers.hasHeaderWithName(name), "Response doesn't have header with name " + name);
         return headers.getValue(name);
     }
 
